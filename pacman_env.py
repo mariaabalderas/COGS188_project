@@ -6,7 +6,7 @@ from ale_py import ALEInterface
 ale = ALEInterface()
 
 # Create the environment
-env = gym.make("ALE/Pacman-v5") # Use "human" for live rendering
+env = gym.make("ALE/Pacman-v5") 
 
 # Reset environment
 obs, info = env.reset()

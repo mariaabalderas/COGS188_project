@@ -65,7 +65,7 @@ class DQN(nn.Module):
             nn.Conv2d(64, 64, kernel_size=3, stride=1),
             nn.ReLU(),
         )
-        
+
         self.fc = nn.Sequential(
             nn.Linear(64*7*7, 512),
             nn.ReLU(),
@@ -76,3 +76,105 @@ class DQN(nn.Module):
         x = self.conv(x)
         x = x.view(x.size(0), -1)
         return self.fc(x)
+
+# Process image inputs for DQN: grayscale, resized, stacked frames
+'''
+class FrameProcessor:
+    def __init__(self):
+        self.transform = T.compose([
+            T.ToPILImage(),
+            T.Grayscale(),
+            T.Resize((84, 84)),
+            T.ToTensor()
+        ])
+    
+    def process(self, frame):
+        return self.transform(frame).numpy()
+'''
+
+class DQNAgent:
+    def __init__(self, action_size, lr=1e-4, gamma=0.99, epsilon=1, epsilon_min=0.1, epsilon_decay=0.995):
+        self.action_size = action_size
+        self.gamma = gamma
+        self.epsilon = epsilon_decay
+        self.epsilon_min = epsilon_min
+        self.epsilon_decay = epsilon_decay
+        self.batch_size = 32
+        self.update_target_frequency = 1000
+
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+        # Initialize network
+        self.policy_net = DQN(action_size).to(self.device)
+        self.target_net = DQN(action_size).to(self.device)
+        self.target_net.load_state_dict(self.policy_net.state_dict())
+
+        # Optimizer
+        self.optimizer = optim.Adam(self.policy_net.parameters(), lr=lr)
+        self.loss_fn = nn.MSELoss()
+        self.memory = ReplayBuffer()
+
+    def select_action(self, state):
+        """
+        Choose action using epsilon-greedy formula.
+        Args:
+            state (3d NumPy Array): The current observation state, given by an RGB image
+        
+        Returns:
+            our action (tensor), selected by epsilon-greedy
+        """
+        
+        if np.random.rand() < self.epsilon:
+            return random.randrange(self.action_size)
+        else:
+            # Convert state to a tensor, then pass through the cnn to determine action
+            state_tensor = torch.FloatTensor(state).unsqueeze(0).to(self.device)
+            with torch.no_grad(): # Prevents gradient from being tracked
+                return torch.argmax(self.policy_net(state_tensor)).item()
+            
+    def train(self):
+        """
+        This checks if memory is smaller than the necessary batch size. It does not run
+        if it is too small. 
+        """
+        if len(self.memory) < self.batch_size:
+            return
+        
+        # Get a sample batch
+        states, actions, rewards, next_states, dones = self.memory.sample(self.batch_size)
+
+        # Convert all resulting attributes to a PyTorch Tensor and move to local device
+        states = torch.FloatTensor(states).to(self.device)
+        actions = torch.LongTensor(actions).to(self.device)
+        rewards = torch.FloatTensor(rewards).to(self.device)
+        next_states = torch.FloatTensor(next_states).to(self.device)
+        dones = torch.FloatTensor(dones).to(self.device)
+
+        # Compute Q-values
+        q_values = self.policy_net(states).gather(1, actions.unsqueeze(1)).squeeze(1)
+
+        # Compute targeet Q-values
+        with torch.no_grad():
+            next_q_values = self.target_net(next_states).max(1)[0]
+            target_q_values = rewards + (1-dones) *self.gamma * next_q_values
+        
+        # Compute loss
+        loss = self.loss_fn(q_values, target_q_values)
+
+        # Optimize model
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+
+        # Update target neetwork
+        if np.random.randint(0, self.update_target_frequency) == 0:
+            self.target_net.load_state_dict(self.policy_net.state_dict())
+        
+        if self.epsilon > self.epsilon_min:
+            self.epsilon *= self.epsilon_decay
+
+
+
+
+
+

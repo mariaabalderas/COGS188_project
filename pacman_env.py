@@ -8,7 +8,7 @@ from ale_py import ALEInterface
 ale = ALEInterface()
 
 # Create the environment
-env = gym.make("ALE/Pacman-v5") 
+env = gym.make("ALE/Pacman-v5", full_action_space=True) 
 
 # Reset environment
 obs, info = env.reset()
@@ -22,9 +22,15 @@ for _ in range(1000):
     plt.imshow(obs)
     plt.axis("off")
     plt.title(f"Reward: {reward}")
-    plt.show()
+    plt.show(block=False)
+    plt.pause(0.1)
 
     if terminated or truncated:
         obs, info = env.reset()
 
 env.close()
+
+# class PacMan(object):
+#     def __init__(self, course):
+#         self.position = 
+#         self.

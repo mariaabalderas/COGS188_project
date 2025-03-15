@@ -34,6 +34,28 @@ class DQN(nn.Module):
 
         Since the pacman space is 2d, we will use Conv2d layers, which intakes 2d data, 
         has 2d kernel, and has a 2d output.
+
+        For input Conv layer:
+            - 4 input channels
+            - 32 output channels; this layer learns 32 different filters
+            - 8x8 kernel
+            - stide of 4 for downsampling
+            - ReLU for non-linearity
+        
+        For second Conv layer:
+            - 32 input feature maps from previous layer
+            - 64 output feature maps
+            - 4x4 kernel
+            - stride of 2
+        
+        For third Conv layer:
+            - 64 input feature maps
+            - 64 output feature maps
+            - 3x3 kernel
+            - stride of 1 (no downsampling to retain details)
+        
+        The output of the CNN is a feature map, which we flatten and pass through
+        fully connected layers for decision-making, using the fc linear network.
         
         """
         self.conv = nn.Sequential( # Use Sequential to set up pipeline of layers
@@ -43,3 +65,14 @@ class DQN(nn.Module):
             nn.Conv2d(64, 64, kernel_size=3, stride=1),
             nn.ReLU(),
         )
+        
+        self.fc = nn.Sequential(
+            nn.Linear(64*7*7, 512),
+            nn.ReLU(),
+            nn.Linear(512, action_size)
+        )
+    
+    def forward(self, x):
+        x = self.conv(x)
+        x = x.view(x.size(0), -1)
+        return self.fc(x)

@@ -30,7 +30,7 @@ for _ in range(1000):
 
 env.close()
 
-# class PacMan(object):
-#     def __init__(self, course):
-#         self.position = 
-#         self.
+# Function to create environment:
+def make_pacman_env(render_mode="human"):
+    env = gym.make("ALE/Pacman-v5", render_mode=render_mode)
+    return env

@@ -15,6 +15,7 @@ import torchvision.transforms as T
 from dm_control import suite
 from dataclasses import dataclass
 from pacman_env import make_pacman_env
+from stable_baselines3.common.buffers import ReplayBuffer
 
 env = make_pacman_env(render_mode="human")
 

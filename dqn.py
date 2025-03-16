@@ -28,6 +28,9 @@ class DQN(nn.Module):
     def __init__(self, action_size):
         super(DQN, self).__init__() # This initializes a PyTorch model
         """
+        This step approximates the Q-function, predicting the Q-value for each
+        possible action, given the current state. 
+
         Convolutional neural networks are good for extracting visual, 
         spatial features and patterns, which is why we will use them to
         analyze our observation space states.
@@ -78,7 +81,7 @@ class DQN(nn.Module):
         return self.fc(x)
 
 # Process image inputs for DQN: grayscale, resized, stacked frames
-'''
+
 class FrameProcessor:
     def __init__(self):
         self.transform = T.compose([
@@ -90,13 +93,28 @@ class FrameProcessor:
     
     def process(self, frame):
         return self.transform(frame).numpy()
-'''
+
 
 class DQNAgent:
     def __init__(self, action_size, lr=1e-4, gamma=0.99, epsilon=1, epsilon_min=0.1, epsilon_decay=0.995):
+        """
+        action_size: Contains all possible actions in environment
+        lr: Learning rate
+        gamma: 
+        epsilon: Our ratio for greedy vs random actions
+        epsilon_min: 
+        epsilon_decay:
+        batch_size:
+        update_target_frequency: 
+
+        optimizer:
+            optimizer:
+            loss_fn:
+            memory: Experiences stored here using Replay Buffer
+        """
         self.action_size = action_size
         self.gamma = gamma
-        self.epsilon = epsilon_decay
+        self.epsilon = epsilon
         self.epsilon_min = epsilon_min
         self.epsilon_decay = epsilon_decay
         self.batch_size = 32
@@ -129,14 +147,21 @@ class DQNAgent:
         else:
             # Convert state to a tensor, then pass through the cnn to determine action
             state_tensor = torch.FloatTensor(state).unsqueeze(0).to(self.device)
-            with torch.no_grad(): # Prevents gradient from being tracked
+            with torch.no_grad(): # Prevents gradient from being computed and stored, which would take time and memory
                 return torch.argmax(self.policy_net(state_tensor)).item()
             
     def train(self):
         """
-        This checks if memory is smaller than the necessary batch size. It does not run
-        if it is too small. 
+        In this step, our agent interacts with the environment, and the resulting reedback
+        (reward, next state, and condition) are given. The resulting attributes are 
+        stored in memory.
+
+        idk if this is rt --> Next, we randomly sample a batch of experiences from replay buffer, and update
+        the q-network, using the Bellman equation to check for convergence. 
+
         """
+        # Checks if memory is smaller than the necessary batch size. It does not run
+        # if it is too small. 
         if len(self.memory) < self.batch_size:
             return
         

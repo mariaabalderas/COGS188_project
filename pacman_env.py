@@ -31,6 +31,6 @@ for _ in range(1000):
 env.close()
 
 # Function to create environment:
-def make_pacman_env(render_mode="human"):
-    env = gym.make("ALE/Pacman-v5", render_mode=render_mode)
+def make_pacman_env(render_mode="human", obs_type="grayscale"):
+    env = gym.make("ALE/Pacman-v5", render_mode=render_mode, obs_type=obs_type)
     return env

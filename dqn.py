@@ -200,6 +200,39 @@ class DQNAgent:
             self.epsilon *= self.epsilon_decay
 
 
+# Train the agent
+
+env = make_pacman_env(render_mode="human", obs_type="grayscale")
+# Reduce observation space for improved efficiency
+state_shape = (4, 84, 84) # Create 4 stacked frames
+action_size = env.action_space.n
+
+agent = DQNAgent(action_size)
+processor = FrameProcessor()
+
+num_episodes = 500
+for episode in range(num_episodes):
+    state, _ = env.reset()
+    state = processor.process(state)
+    state_stack = np.stack([state]*4, axis=0)
+
+    total_reward = 0
+    for t in count():
+        action = agent.select_action(state_stack)
+        next_state, reward, terminated, truncated, _ = env.step(action)
+
+        next_state = processor.process(next_state)
+        next_state_stack = np.concatenate([state_stack[1:], np.expand_dims(next_state, 0)], axis=0)
+
+        agent.memory.push(state_stack, action, reward, next_state_stack, truncated)
+        agent.train()
+
+        state_stack = next_state_stack
+        total_reward += reward
+
+        if terminated or truncated:
+            print(f"Episode {episode+1}, Reward: {total_reward}, Epsilon: {agent.epsilon:.3f}")
+            break
 
 
 

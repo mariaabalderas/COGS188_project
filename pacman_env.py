@@ -1,72 +1,37 @@
 import gymnasium as gym
-import numpy as np
-import matplotlib.pyplot as plt
-import sys
-import cv2
-print(sys.executable)
-
+import time
+import random
 from ale_py import ALEInterface
-ale = ALEInterface()
 
-# Create the environment
-env = gym.make("ALE/Pacman-v5", full_action_space=True) 
+# Create the Ms. Pac-Man environment
 
-# Reset environment
-obs, info = env.reset()
-
-#enable interactive mode
-#plt.ion()
-
-# Run the environment for a few frames
-for _ in range(1000):
-    action = env.action_space.sample()  # Take a random action
-    obs, reward, terminated, truncated, info = env.step(action)  # Perform action
-
-<<<<<<< Updated upstream
-    # Display the game screen
-    plt.imshow(obs)
-    plt.axis("off")
-    plt.title(f"Reward: {reward}")
-    plt.show(block=False)
-    plt.pause(0.1)
-=======
-    # Convert image from RGB to BGR for OpenCV
-    obs = cv2.cvtColor(obs, cv2.COLOR_RGB2BGR)
-    cv2.imshow("Pac-Man", obs)
-
-    if cv2.waitKey(10) & 0xFF == ord('q'):  # Press 'q' to close
-        break
->>>>>>> Stashed changes
-
-    if terminated or truncated:
-        obs, info = env.reset()
-
-# close the environment
-env.close()
-<<<<<<< Updated upstream
-
-# Function to create environment:
-def make_pacman_env(render_mode="human", obs_type="grayscale"):
-    env = gym.make("ALE/Pacman-v5", render_mode=render_mode, obs_type=obs_type)
+def make_pacman_env(render_mode, obs_type):
+    env = gym.make("ALE/MsPacman-v5", render_mode=render_mode, obs_type=obs_type)
     return env
-=======
-cv2.destroyAllWindows()
 
-'''   # Display the game screen
-    plt.clf()
-    plt.imshow(obs)
-    plt.axis("off")
-    plt.title(f"Reward: {reward}")
-    #plt.show(block=False)
-    plt.draw()
-    plt.pause(0.1)
+env = make_pacman_env("human", "grayscale")
 
-    if terminated or truncated:
-        obs, info = env.reset()
+# Reset the environment to start a new game
+observation, info = env.reset()
 
-# close the environment        
-plt.ioff()
-plt.close()
+done = False
+for _ in range(5000):  # You can adjust the number of steps you want
+    # Choose a random action from the action space
+    action = env.action_space.sample()
+
+    # Take the action and get the next observation and reward
+    observation, reward, done, truncated, info = env.step(action)
+
+    # Optionally render the screen (this will open a window showing the game)
+    env.render()
+
+    # If the game ends or is truncated, print Game Over and reset
+    if done or truncated:
+        print("Game Over!")
+        break
+
+    # Optionally, add a sleep to slow down the game loop
+    time.sleep(0.05)
+
+# Close the environment after the game is done
 env.close()
-'''
->>>>>>> Stashed changes

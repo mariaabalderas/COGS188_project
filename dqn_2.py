@@ -151,7 +151,7 @@ plt.plot(rewards_list)
 plt.xlabel('Episode')
 plt.ylabel('Total Reward')
 plt.title('Training Progress')
-plt.savefig("rewards_pacman7.png")
+plt.savefig("rewards_pacman.png")
 plt.show()
 
 env.close()

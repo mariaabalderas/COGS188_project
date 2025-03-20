@@ -1,2 +1,2 @@
-class MinimaxAlphaBeta:
+# DELETE THIS FILE
 # just testing
